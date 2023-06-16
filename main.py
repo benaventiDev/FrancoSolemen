@@ -40,14 +40,61 @@ y = df['ingreso']
 model = sm.OLS(y, X)
 results = model.fit()
 
+print("d) ", results.summary(), "\nS")
 #**************************E**************************
 rsquared = results.rsquared  # R^2, porcentaje de la variabilidad explicado por el modelo
-
+print("e) El porcentaje de variabilidad del ingreso mensual explicado por este modelo es ", rsquared)
 #**************************F**************************
+new_data = pd.DataFrame({'const':1, 'educacion':14, 'experiencia':6, 'edad':40, 'titulo':1}, index=[0])
+prediction = results.predict(new_data)
+
+print("f) El ingreso mensual de una persona que tiene 14 años de educacion y 6 de experiencia es ", prediction)
 #**************************G**************************
+
 #**************************H**************************
+X = df[['educacion', 'experiencia', 'edad', 'titulo']]
+y = df['ingreso']
+X = sm.add_constant(X)
+model = sm.OLS(y, X)
+results = model.fit()
+significativas = results.pvalues[results.pvalues < 0.05]
+print("h) Las variables significativas son:")
+print(significativas)
 #**************************I**************************
+residuos = results.resid
+plt.hist(residuos, bins=30, edgecolor='black')
+plt.title('Histograma de los residuos: Franco Cañoles')
+plt.show()
+
+
+# Test de normalidad (por ejemplo, test de Shapiro-Wilk)
+stat, p = stats.shapiro(residuos)
+
+
 #**************************J**************************
+# Gráfica de residuos vs predicción
+plt.scatter(results.predict(), residuos)
+plt.xlabel('Predicción')
+plt.ylabel('Residuos')
+plt.show()
+
+# Test de Breusch-Pagan
+names = ['Lagrange multiplier statistic', 'p-value', 'f-value', 'f p-value']
+test = sms.het_breuschpagan(residuos, results.model.exog)
+lzip(names, test)
+
+
 #**************************K**************************
+durbinWatson = durbin_watson(residuos)
+print("k) ", durbinWatson, ". Ya que el valor se encentra cerca de 2, hay poca evidencia de autocorrelacion en los datos.")
 #**************************L**************************
+# Matriz de correlación (mapa de calor)
+corrMatrix = X.corr()
+sns.heatmap(corrMatrix, annot=True)
+plt.show()
+
+# Cálculo del VIF
+vif = pd.DataFrame()
+vif["VIF Factor"] = [variance_inflation_factor(X.values, i) for i in range(X.shape[1])]
+vif["features"] = X.columns
 
